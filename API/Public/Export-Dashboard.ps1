@@ -40,7 +40,7 @@ function Export-GrafanaDashboard{
         # Force using TLS v1.2
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
-        $json = ConvertTo-Json $dashboardJson.data -depth 20
+        $json = ConvertTo-Json $dashboardJson.data -depth 100 -compress
         return $json
     }
 }

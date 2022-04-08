@@ -49,7 +49,7 @@ function Connect-Grafana{
         $header = Get-AuthHeader -Type Basic
         try{
             Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json;charset=utf-8' -Headers $header | Out-null
-            Write-Verbose "Connexion succesfull"
+            Write-Verbose "Connection succesfull"
         }catch{
             Write-Error "Unable to connect : $_"
             Disconnect-Grafana
