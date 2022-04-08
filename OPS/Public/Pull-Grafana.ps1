@@ -46,11 +46,16 @@ function Pull-Grafana{
             $DashboardTitle = $($Dashboard.title)
             $DashboardTitle = $DashboardTitle -replace '/', ''
             $dashboardcontentjson = Export-GrafanaDashboard -id $Dashboard.id -latest
-            $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 20
-            $pathdbdata = "$Path\$($Dashboard.uid)-$DashboardTitle-DBData.json"
+            
+            $dsj = ConvertFrom-Json -InputObject $dashboardcontentjson
+            $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value $dsj
+
+            $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 -Compress
+            $pathdbdata = "$Path\$($Dashboard.uid)-$DashboardTitle.json"
             $dashboarddatajson | Out-File -FilePath $pathdbdata -Force
-            $pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
-            $dashboardcontentjson | Out-File -FilePath $pathcontent -Force
+            
+            #$pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
+            #$dashboardcontentjson | Out-File -FilePath $pathcontent -Force
         }
 
         #############################
