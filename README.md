@@ -13,4 +13,4 @@ OPS : Pull all configuration
 
 OPS : Push configuration back to grafana
 
-OPS : Create Azure Devops Pipeline
+OPS : Create Azure Devops Pipeline for pull and push
