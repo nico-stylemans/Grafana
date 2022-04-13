@@ -35,10 +35,39 @@ function Pull-Grafana{
 
         Connect-Grafana -Login $Login -Password $Password -Token $Token -url $url
 
+
+        ##########################
+        # Export Grafana Folders #
+        ##########################
+
+        If(!(test-path "$path\Folders"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Folders"
+        }
+        
+        $Folders = Get-GrafanaFolder
+        
+        foreach($Folder in $Folders){
+            
+            $FolderUid = $($Folder.uid)
+            $Folderjson = Get-GrafanaFolder -uid $FolderUid
+            
+            $pathfolderdata = "$Path\Folders\$($Folder.uid)-$($Folder.Title).json"
+            $Folderjson | Out-File -FilePath $pathfolderdata -Force
+            
+            #$pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
+            #$dashboardcontentjson | Out-File -FilePath $pathcontent -Force
+        }
+
         #############################
         # Export Grafana Dashboards #
         #############################
 
+        If(!(test-path "$path\Dashboards"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Dashboards"
+        }
+        
         $Dashboards = Get-GrafanaDashboard
         
         foreach($Dashboard in $Dashboards){
@@ -51,7 +80,7 @@ function Pull-Grafana{
             $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value $dsj
 
             $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 -Compress
-            $pathdbdata = "$Path\$($Dashboard.uid)-$DashboardTitle.json"
+            $pathdbdata = "$Path\Dashboards\$($Dashboard.uid)-$DashboardTitle.json"
             $dashboarddatajson | Out-File -FilePath $pathdbdata -Force
             
             #$pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
