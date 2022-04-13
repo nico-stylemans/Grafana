@@ -1,4 +1,4 @@
-function Pull-Grafana{
+function Invoke-PullGrafana{
     <#
     .SYNOPSIS
         Function Get Grafana config to json output
@@ -35,6 +35,20 @@ function Pull-Grafana{
 
         Connect-Grafana -Login $Login -Password $Password -Token $Token -url $url
 
+
+        ###########################
+        # Export Grafana Settings #
+        ###########################
+
+        If(!(test-path "$path\Settings"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Settings"
+        }
+        
+        $Settings = Get-GrafanaSettings
+        $pathsettingsdata = "$Path\Settings\Settings.json"               
+        $Settings | Out-File -FilePath $pathsettingsdata -Force
+            
 
         ##########################
         # Export Grafana Folders #
