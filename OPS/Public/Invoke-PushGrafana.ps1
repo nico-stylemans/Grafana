@@ -1,4 +1,4 @@
-function Push-Grafana{
+function Invoke-PushGrafana{
     <#
     .SYNOPSIS
         Function Push Grafana config from json
