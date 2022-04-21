@@ -30,12 +30,12 @@ Write-Verbose -Message "Creating modules variables"
 
 $script:nsSession = $null 
  
-$GrafanaApi = Import-Module -Name Grafana -PassThru
+$GrafanaApi = Import-Module -Name Grafana-api -PassThru
 
 if($GrafanaApi)
 {
     $script:PSModule.OnRemove = {
-        Remove-Module -Name Grafana
+        Remove-Module -Name Grafana-api
     }
 }
 #region Handle Module Removal

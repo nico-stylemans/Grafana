@@ -46,8 +46,9 @@ function Invoke-PullGrafana{
         }
         
         $Settings = Get-GrafanaSettings
+        $Settingsjson = ConvertTo-Json -InputObject $Settings -Depth 100 #-Compress
         $pathsettingsdata = "$Path\Settings\Settings.json"               
-        $Settings | Out-File -FilePath $pathsettingsdata -Force
+        $Settingsjson | Out-File -FilePath $pathsettingsdata -Force
             
 
         ##########################
@@ -64,13 +65,38 @@ function Invoke-PullGrafana{
         foreach($Folder in $Folders){
             
             $FolderUid = $($Folder.uid)
-            $Folderjson = Get-GrafanaFolder -uid $FolderUid
+            $Folderdata = Get-GrafanaFolder -uid $FolderUid
             
+            $Folderjson = ConvertTo-Json -InputObject $Folderdata -Depth 100 #-Compress
             $pathfolderdata = "$Path\Folders\$($Folder.uid)-$($Folder.Title).json"
             $Folderjson | Out-File -FilePath $pathfolderdata -Force
             
             #$pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
             #$dashboardcontentjson | Out-File -FilePath $pathcontent -Force
+        }
+
+        ##############################
+        # Export Grafana Datasources #
+        ##############################
+
+        If(!(test-path "$path\DataSources"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\DataSources"
+        }
+        
+        $DataSources = Get-GrafanaDatasource
+        
+        foreach($Datasource in $DataSources){
+            
+            #$DatasourceName = $($Datasource.name)
+            #$DatasourceName = $DatasourceName -replace '/', ''
+            $Datasourcedata = Get-GrafanaDatasource -uid $Datasource.uid
+
+            $DatasourceContentJson = ConvertTo-Json -InputObject $Datasourcedata -Depth 100 #-Compress
+            $pathdsdata = "$Path\DataSources\$($Datasource.uid)-$($Datasource.name).json"
+            $DatasourceContentJson | Out-File -FilePath $pathdsdata -Force
+            
+            
         }
 
         #############################
@@ -93,7 +119,7 @@ function Invoke-PullGrafana{
             $dsj = ConvertFrom-Json -InputObject $dashboardcontentjson
             $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value $dsj
 
-            $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 -Compress
+            $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 #-Compress
             $pathdbdata = "$Path\Dashboards\$($Dashboard.uid)-$DashboardTitle.json"
             $dashboarddatajson | Out-File -FilePath $pathdbdata -Force
             
