@@ -46,9 +46,18 @@ function New-GrafanaDashboard{
     
         $jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
 
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody
-        return $dashboardJson   
+        try {
+            # Force using TLS v1.2
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody
+            return $dashboardJson   
+        }
+        Catch {
+            if($_.ErrorDetails.Message) {
+                return $_.ErrorDetails.Message
+            } else {
+                return $_
+            }
+        }
     }
 }

@@ -36,11 +36,19 @@ function Export-GrafanaDashboard{
         $resource = "/api/dashboards/id/$id/versions/$version"
         $url += "$resource"
         write-verbose $url
-
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
-        $json = ConvertTo-Json $dashboardJson.data -depth 100 -compress
-        return $json
+        try {
+            # Force using TLS v1.2
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
+            $json = ConvertTo-Json $dashboardJson.data -depth 100 -compress
+            return $json
+        }
+        Catch {
+            if($_.ErrorDetails.Message) {
+                return $_.ErrorDetails.Message
+            } else {
+                return $_
+            }
+        }
     }
 }

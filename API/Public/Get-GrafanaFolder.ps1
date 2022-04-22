@@ -6,8 +6,6 @@ function Get-GrafanaFolder{
 
     .EXAMPLE
         
-    .PARAMETER url
-        Grafana root URL
     .PARAMETER uid
         Dashboard uid
     #>
@@ -15,8 +13,6 @@ function Get-GrafanaFolder{
     param(
         [Parameter(Mandatory=$false)]
         [string]$uid
-        #[Parameter(Mandatory=$false)]
-        #[string]$id
     )
     
     process{
@@ -38,10 +34,20 @@ function Get-GrafanaFolder{
             
         }
         write-verbose $url
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $FolderList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
         
-        return $FolderList
+        try {
+            # Force using TLS v1.2
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $FolderList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
+            
+            return $FolderList
+        }
+        Catch {
+            if($_.ErrorDetails.Message) {
+                return $_.ErrorDetails.Message
+            } else {
+                return $_
+            }
+        }
     }
 }
