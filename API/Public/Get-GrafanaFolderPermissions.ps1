@@ -1,31 +1,33 @@
-function Get-GrafanaSettings{
+function Get-GrafanaFolderPermissions{
     <#
     .SYNOPSIS
-        Function for listing all Settings in ini file
+        Function for list all of Folders / return Folder by ui
     .DESCRIPTION
 
     .EXAMPLE
         
-    
+    .PARAMETER uid
+        Folder uid
     #>
     [CmdletBinding()]
     param(
-    
+        [Parameter(Mandatory=$true)]
+        [string]$uid
     )
     
     process{
         $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type Basic
-
-        $url += "/api/admin/settings"  
+        $header = Get-AuthHeader -Type token
+         
+        $url += "/api/folders/$uid/permissions"
         
         write-verbose $url
         try {
-            # Force using TLS v1.2
+        # Force using TLS v1.2
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $Settings = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
+            $PermissionList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
             
-            return $Settings
+            return $PermissionList
         }
         Catch {
             if($_.ErrorDetails.Message) {

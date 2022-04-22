@@ -35,9 +35,18 @@ function Update-GrafanaFolder{
            
         $jsonBody = ConvertTo-Json -InputObject $folder -Depth 100 -Compress  
 
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $FolderJson = Invoke-RestMethod -Uri $url -Headers $header -Method PUT -ContentType 'application/json;charset=utf-8' -Body $jsonBody
-        return $FolderJson   
+        try {
+            # Force using TLS v1.2
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $FolderJson = Invoke-RestMethod -Uri $url -Headers $header -Method PUT -ContentType 'application/json;charset=utf-8' -Body $jsonBody
+            return $FolderJson   
+        }
+        Catch {
+            if($_.ErrorDetails.Message) {
+                return $_.ErrorDetails.Message
+            } else {
+                return $_
+            }
+        }
     }
 }

@@ -30,10 +30,19 @@ function Get-GrafanaDashboardVersion{
             $url += $param
         }
         write-verbose $url
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardVersions = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
-        
-        return $dashboardVersions
+        try {
+            # Force using TLS v1.2
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $dashboardVersions = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
+            
+            return $dashboardVersions
+        }
+        Catch {
+            if($_.ErrorDetails.Message) {
+                return $_.ErrorDetails.Message
+            } else {
+                return $_
+            }
+        }
     }
 }

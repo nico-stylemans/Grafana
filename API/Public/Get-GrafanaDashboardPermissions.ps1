@@ -1,33 +1,33 @@
-function Remove-GrafanaFolder{
+function Get-GrafanaDashboardPermissions{
     <#
     .SYNOPSIS
-        Create New Grafana Folder
+        Function for list all of Folders / return Folder by ui
     .DESCRIPTION
-        
+
     .EXAMPLE
-      
-    
-    .PARAMETER Uid
-        Uid of folder
+        
+    .PARAMETER uid
+        Dashboard uid
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [String]$Uid   
+        [string]$uid
     )
     
-    process {
+    process{
         $url = Get-GrafanaUrl
         $header = Get-AuthHeader -Type token
-                
-        $url += "/api/folders/$Uid"
-        write-verbose $url
+         
+        $url += "/api/dashboards/uid/$uid/permissions"
         
+        write-verbose $url
         try {
-            # Force using TLS v1.2
+        # Force using TLS v1.2
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $FolderJson = Invoke-RestMethod -Uri $url -Headers $header -Method DELETE -ContentType 'application/json;charset=utf-8'
-            return $FolderJson   
+            $PermissionList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
+            
+            return $PermissionList
         }
         Catch {
             if($_.ErrorDetails.Message) {
