@@ -34,7 +34,7 @@ $GrafanaApi = Import-Module -Name Grafana-api -PassThru
 
 if($GrafanaApi)
 {
-    $script:PSModule.OnRemove = {
+    $ModuleName.OnRemove = {
         Remove-Module -Name Grafana-api
     }
 }
@@ -52,6 +52,8 @@ try {
     $publicFunctions = Get-ChildItem -Path "$PSScriptRoot\Public" -Recurse -Include *.ps1 -Exclude *.tests.ps1 
     foreach ($function in $publicFunctions) { 
         . $function.FullName 
+        write-verbose ($function.Name.Split("."))[0]
+        Export-ModuleMember -Function ($function.Name.Split("."))[0]
     } 
 }
 catch {

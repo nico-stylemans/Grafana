@@ -59,7 +59,10 @@ function Invoke-PullGrafana{
         {
             New-Item -ItemType Directory -Force -Path "$path\Folders"
         }
-        
+        If(!(test-path "$path\Folders\Permissions"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Folders\Permissions"
+        }
         $Folders = Get-GrafanaFolder
         
         foreach($Folder in $Folders){
@@ -71,8 +74,11 @@ function Invoke-PullGrafana{
             $pathfolderdata = "$Path\Folders\$($Folder.uid)-$($Folder.Title).json"
             $Folderjson | Out-File -FilePath $pathfolderdata -Force
             
-            #$pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
-            #$dashboardcontentjson | Out-File -FilePath $pathcontent -Force
+            $Folderperm = Get-GrafanaFolderPermissions -uid $FolderUid
+            $Folderpermjson = ConvertTo-Json -InputObject $Folderperm -Depth 100 #-Compress
+            $pathfolderperm = "$Path\Folders\Permissions\$($Folder.uid)-Permissions.json"
+            $Folderpermjson | Out-File -FilePath $pathfolderperm -Force
+                        
         }
 
         ##############################
@@ -107,6 +113,11 @@ function Invoke-PullGrafana{
         {
             New-Item -ItemType Directory -Force -Path "$path\Dashboards"
         }
+
+        If(!(test-path "$path\Dashboards\Permissions"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Dashboards\Permissions"
+        }
         
         $Dashboards = Get-GrafanaDashboard
         
@@ -123,8 +134,11 @@ function Invoke-PullGrafana{
             $pathdbdata = "$Path\Dashboards\$($Dashboard.uid)-$DashboardTitle.json"
             $dashboarddatajson | Out-File -FilePath $pathdbdata -Force
             
-            #$pathcontent = "$Path\$($Dashboard.uid)-$DashboardTitle-DBContent.json"
-            #$dashboardcontentjson | Out-File -FilePath $pathcontent -Force
+            $Dashperm = Get-GrafanaDashboardPermissions -uid $Dashboard.uid
+            $Dashpermjson = ConvertTo-Json -InputObject $Dashperm -Depth 100 #-Compress
+            $pathdashperm = "$Path\Dashboards\Permissions\$($Dashboard.uid)-Permissions.json"
+            $Dashpermjson | Out-File -FilePath $pathdashperm -Force
+
         }
 
         #############################
