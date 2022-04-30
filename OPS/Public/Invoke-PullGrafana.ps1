@@ -141,6 +141,25 @@ function Invoke-PullGrafana{
 
         }
 
+        #################################
+        # Export Grafana Library Panels #
+        #################################
+
+        If(!(test-path "$path\Panels"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Panels"
+        }
+        
+        $Panels = Get-GrafanaPanels
+        
+        foreach($Panel in $Panels.result.elements){
+            
+            $PanelJson = ConvertTo-Json -InputObject $Panel -Depth 100 #-Compress
+            $pathpldata = "$Path\Panels\$($Panel.uid)-$($Panel.name).json"
+            $PanelJson | Out-File -FilePath $pathpldata -Force  
+            
+        }
+
         #############################
         # Disconnect to grafana API #
         #############################

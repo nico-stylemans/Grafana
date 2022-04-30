@@ -25,7 +25,7 @@ function Get-GrafanaPanels{
 
         if ([string]::IsNullOrWhiteSpace($uid)){
             $url += "/api/library-elements?kind=1"  
-            if (not([string]::IsNullOrWhiteSpace($uid))){  
+            if ( -not ([string]::IsNullOrWhiteSpace($uid))){  
                 $url += "/api/library-elements?kind=1&page=$page"  
             }
         } 
