@@ -39,11 +39,11 @@ if($GrafanaApi)
     }
 }
 #region Handle Module Removal
-$OnRemoveScript = {
+#$OnRemoveScript = {
     #Remove-Variable -Name TokenList -Scope Script -Force
-}
-$ExecutionContext.SessionState.Module.OnRemove += $OnRemoveScript
-Register-EngineEvent -SourceIdentifier ([System.Management.Automation.PsEngineEvent]::Exiting) -Action $OnRemoveScript
+#}
+#$ExecutionContext.SessionState.Module.OnRemove += $OnRemoveScript
+#Register-EngineEvent -SourceIdentifier ([System.Management.Automation.PsEngineEvent]::Exiting) -Action $OnRemoveScript
 #endregion Handle Module Removal
 
 
