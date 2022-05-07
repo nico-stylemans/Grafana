@@ -1,0 +1,11 @@
+{
+    "Version": 1,
+    "GrafanaOps": {               
+        "AzureDevOps": {
+            "GrafanaOps.Folder": "%PIPELINE_WORKSPACE%/s/root"
+        },
+        "GitHub": {
+            "GrafanaOps.Folder": "%GITHUB_WORKSPACE%/root"
+        }
+    }
+}

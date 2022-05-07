@@ -1,0 +1,58 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "KeyvName": {
+        "value": "<KeyvautlName>"
+      },
+      "keylocation": {
+        "value": "WestEurope"
+      },
+      "enablerbac": {
+        "value": false
+      },
+      "secrets": {
+        "value": [{
+            "scname": "<Secret1>",
+            "scvalue": "<Secret1Value>"
+        },
+        {
+            "scname": "<Secret2>",
+            "scvalue": "<Secret2Value>"
+        }]
+      },
+      "policyaction": {
+        "value": "add"
+      },
+      "aplist": {
+        "value": [{
+          "appid": "",
+          "objid": "<GrafanaOpsId>",
+          "tentatid": "<TenantId>",
+          "permissions": {
+                 "certificates": [],
+                 "keys": [],
+                 "secrets": [
+                   "get",
+                   "list"
+                 ],
+                 "storage": []
+            }
+        },
+        {
+            "appid": "",
+            "objid": "<OtherIds>",
+            "tentatid": "<TenantId>",
+            "permissions": {
+                   "certificates": [],
+                   "keys": [],
+                   "secrets": [
+                     "get",
+                     "list"
+                   ],
+                   "storage": []
+              }
+          }]
+      }
+    }
+  }
