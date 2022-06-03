@@ -34,19 +34,15 @@ function Get-GrafanaPanels{
             
         }
         write-verbose $url
-        try {
-            # Force using TLS v1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $panelList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
-            
-            return $panelList
+    
+        # Force using TLS v1.2
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $panelList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8' -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
+        
+        $ReturnValue = New-Object PSObject -Property @{
+            StatusCode = $mystatus
+            Data = $panelList
         }
-        Catch {
-            if($_.ErrorDetails.Message) {
-                return $_.ErrorDetails.Message
-            } else {
-                return $_
-            }
-        }
+        return $ReturnValue
     }
 }

@@ -18,14 +18,17 @@ function New-GrafanaPanel{
     #>
     [CmdletBinding()]
     param(
+        ##[Parameter(Mandatory=$false)]
+        ##[String]$name,
+        ##[Parameter(Mandatory=$false)]
+        ##[String]$model,        
+        ##[Parameter(Mandatory=$false)]
+        ##[String]$folderid,
+        ##[Parameter(Mandatory=$false)]
+        ##[String]$uid,
         [Parameter(Mandatory=$true)]
-        [String]$name,
-        [Parameter(Mandatory=$true)]
-        [String]$model,        
-        [Parameter(Mandatory=$false)]
-        [String]$folderid,
-        [Parameter(Mandatory=$false)]
-        [String]$uid
+            $paneljson            
+        
     )
     
     process {
@@ -35,35 +38,34 @@ function New-GrafanaPanel{
         $url += "/api/library-elements"
         write-verbose $url
 
-        if ([string]::IsNullOrWhiteSpace($uid)){
-            $uid = $null
-        }
-        if ([string]::IsNullOrWhiteSpace($folderid)){
-            $folderid = 0
-        }
-        
-        $body = @{
-            uid = $uid
-            folderId = $folderid
-            name = $name
-            model = $model
-            kind = 1
-        }
+        #if ([string]::IsNullOrWhiteSpace($uid)){
+        #    $uid = $null
+        #}
+        #if ([string]::IsNullOrWhiteSpace($folderid)){
+        #    $folderid = 0
+        #}
+                
+        #$body = @{
+        #    uid = $uid
+        #    folderId = $folderid
+        #    name = $name
+        #    model = $model
+        #    kind = 1
+        #}
     
-        $jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
+        #$jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
 
-        try {
-            # Force using TLS v1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $panelJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody
-            return $panelJson   
+        $jsonBody = ConvertTo-Json -InputObject $paneljson -Depth 100 -Compress  
+
+        # Force using TLS v1.2
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $panelJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
+        
+        $ReturnValue = New-Object PSObject -Property @{
+            StatusCode = $mystatus
+            Data = $paneljson
         }
-        Catch {
-            if($_.ErrorDetails.Message) {
-                return $_.ErrorDetails.Message
-            } else {
-                return $_
-            }
-        }
+
+        return $ReturnValue       
     }
 }
