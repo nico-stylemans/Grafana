@@ -29,6 +29,130 @@ function Invoke-PushGrafana{
         [string]$path
     )
     Process {
+
+        ##########################
+        # Connect to grafana API #
+        ##########################
+
+        Connect-Grafana -Login $Login -Password $Password -Token $Token -url $url
+
+
+        ###########################
+        # IMPORY Grafana Settings #
+        ###########################
+
+        ##############################
+        # IMPORT Grafana Datasources #
+        ##############################
+
+        If(!(test-path "$path\DataSources"))
+        {
+            Return "Datasource folder does not exists!"
+        }
+        
+        $DataSources = Get-ChildItem -Path "$path\DataSources" -File
+                
+        foreach($Datasource in $DataSources){
+            
+            $SecurJsonFields = @{}
+            $SecretError = $false
+            $securefield = $false
+
+            $Datasourceobj = Get-Content -Path $Datasource.FullName | ConvertFrom-Json
+                        
+            if (Get-Member -inputobject $datasourceobj -name "secureJsonFields" -Membertype Properties){
+                $SecretFields = $Datasourceobj.secureJsonFields
+                $securefield = $true
+            
+                foreach($key in $SecretFields.psobject.properties) {
+                    $SecretToGet = "$($Datasourceobj.uid)-$($key.name)"
+                    $secret = Get-AzKeyVaultSecret -VaultName $keyvaultname -Name $SecretToGet -AsPlainText
+                    if ($null -ne $secret) {
+                        $SecurJsonFields.add($key.name, $secret)
+                    } else {
+                        Write-host "Error 001 Keyvault : Secret with name : $($key.name) not found"
+                        $SecretError = $true
+                    }
+                }
+            }
+
+            if ( (!$securefield) -or ($securefield -and !$SecretError)) {
+                
+                if ($securefield){
+                    $myObject = [pscustomobject]$SecurJsonFields    # Tranform Hashtable
+                    $Datasourceobj | Add-Member -MemberType NoteProperty -Name secureJsonData -Value $myObject
+                    $Datasourceobj.PSObject.Properties.Remove('secureJsonFields')
+                }
+                
+                $DatasourceContentJson = ConvertTo-Json -InputObject $Datasourceobj -Depth 100 #-Compress
+                #$pathdsdata = "$Path\DataSources\test.json"
+                #$DatasourceContentJson | Out-File -FilePath $pathdsdata -Force
+                $existingdashboard = Get-GrafanaDatasource -uid $Datasourceobj.uid
+                if ($existingdashboard.StatusCode -eq "401") {
+                    New-GrafanaDatasource -dsjson $DatasourceContentJson
+                }
+                else {
+                    Update-GrafanaDatasource -id $Datasourceobj.id -dsjson DatasourceContentJson
+                }
+            }
+            else {
+                Write-host "Error 002 Datasource : Datasource $($Datasourceobj.name) not added due to missing secrets"
+            }
+        }
+
+        ##########################
+        # IMPORT Grafana Folders #
+        ##########################
+
+        If(!(test-path "$path\Folders"))
+        {
+            Return "Folders folder does not exists!"
+        }
+        
+        $Folders = Get-ChildItem -Path "$path\Folders" -File
+                
+        foreach($Folder in $Folders){
+
+            $Folderobj = Get-Content -Path $Folder.FullName | ConvertFrom-Json
+            
+            $existingfolder = Get-GrafanaFolder -uid $Folderobj.uid #| ConvertFrom-Json
+
+            if ($existingfolder.StatusCode -eq "404") {
+                New-GrafanaFolder -Name $Folderobj.title -uid $Folderobj.uid
+            }
+            else {
+                Update-GrafanaFolder -Name $Folderobj.title -uid $Folderobj.uid
+            }
+ 
+        }
+
+        #########################
+        # IMPORT Grafana Panels #
+        #########################
+
+        If(!(test-path "$path\Panels"))
+        {
+            Return "Panels folder does not exists!"
+        }
+        
+        $Panels = Get-ChildItem -Path "$path\Panels" -File
+                
+        foreach($Panel in $Panels){
+
+            $Panelobj = Get-Content -Path $Panel.FullName | ConvertFrom-Json
+            $Panelobj.PSObject.Properties.Remove('meta')
+            $Panelobj.PSObject.Properties.Remove('version')
+            
+            $PanelobjJson = ConvertTo-Json -InputObject $Panelobj -Depth 100
+            $existingpanel = Get-GrafanaPanels -uid $Panelobj.uid # | ConvertFrom-Json
+            if ($existingpanel.StatusCode -eq "404") {
+                New-GrafanaPanel -paneljson $PanelobjJson
+            } else {
+                Update-GrafanaPanel -paneljson $PanelobjJson
+            }
+
+        }
+
         
     }
 }

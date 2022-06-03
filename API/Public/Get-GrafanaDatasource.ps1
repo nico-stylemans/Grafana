@@ -50,19 +50,17 @@ function Get-GrafanaDatasource{
             
         }
         write-verbose $url
-        try {
-            # Force using TLS v1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $DataSourceList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8'
+        
+        # Force using TLS v1.2
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $DataSourceList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8' -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
 
-            return $DataSourceList
+        $ReturnValue = New-Object PSObject -Property @{
+            StatusCode = $mystatus
+            Data = $DataSourceList
         }
-        Catch {
-            if($_.ErrorDetails.Message) {
-                return $_.ErrorDetails.Message
-            } else {
-                return $_
-            }
-        }
+
+        return $ReturnValue
+    
     }
 }

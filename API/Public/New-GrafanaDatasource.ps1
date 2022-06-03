@@ -6,9 +6,8 @@ function New-GrafanaDatasource{
         
     .EXAMPLE
         
-    .PARAMETER Name
+    .PARAMETER dsjson
         Datasource Json
-    .PARAMETER Uid
     #>
     [CmdletBinding()]
     param(
@@ -24,18 +23,16 @@ function New-GrafanaDatasource{
         write-verbose $url
                    
         $jsonBody = ConvertTo-Json -InputObject $dsjson -Depth 100 -Compress  
-        Try {
-            # Force using TLS v1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $DsJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody
-            return $DsJson   
+        
+        # Force using TLS v1.2
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $DsJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
+        
+        $ReturnValue = New-Object PSObject -Property @{
+            StatusCode = $mystatus
+            Data = $DsJson
         }
-        Catch {
-            if($_.ErrorDetails.Message) {
-                return $_.ErrorDetails.Message
-            } else {
-                return $_
-            }
-        }
+        return $ReturnValue
+        
     }
 }

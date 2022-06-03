@@ -46,10 +46,16 @@ function Invoke-PullGrafana{
         }
         
         $Settings = Get-GrafanaSettings
-        $Settingsjson = ConvertTo-Json -InputObject $Settings -Depth 100 #-Compress
-        $pathsettingsdata = "$Path\Settings\Settings.json"               
-        $Settingsjson | Out-File -FilePath $pathsettingsdata -Force
-            
+
+        if ($Settings.Statuscode -ne "200" ) {
+            Write-Verbose "No Settings found"
+        }
+        else {
+
+            $Settingsjson = ConvertTo-Json -InputObject $Settings.Data -Depth 100 #-Compress
+            $pathsettingsdata = "$Path\Settings\Settings.json"               
+            $Settingsjson | Out-File -FilePath $pathsettingsdata -Force
+        }    
 
         ##########################
         # Export Grafana Folders #
@@ -64,21 +70,28 @@ function Invoke-PullGrafana{
             New-Item -ItemType Directory -Force -Path "$path\Folders\Permissions"
         }
         $Folders = Get-GrafanaFolder
-        
-        foreach($Folder in $Folders){
-            
-            $FolderUid = $($Folder.uid)
-            $Folderdata = Get-GrafanaFolder -uid $FolderUid
-            
-            $Folderjson = ConvertTo-Json -InputObject $Folderdata -Depth 100 #-Compress
-            $pathfolderdata = "$Path\Folders\$($Folder.uid)-$($Folder.Title).json"
-            $Folderjson | Out-File -FilePath $pathfolderdata -Force
-            
-            $Folderperm = Get-GrafanaFolderPermissions -uid $FolderUid
-            $Folderpermjson = ConvertTo-Json -InputObject $Folderperm -Depth 100 #-Compress
-            $pathfolderperm = "$Path\Folders\Permissions\$($Folder.uid)-Permissions.json"
-            $Folderpermjson | Out-File -FilePath $pathfolderperm -Force
+        if ($Folders.Statuscode -ne "200" ) {
+            Write-Verbose "No Folders found"
+        }
+        else {
                         
+            foreach($Folder in $Folders.Data){
+                
+                $FolderUid = $($Folder.uid)
+                $Folderdata = Get-GrafanaFolder -uid $FolderUid
+                
+                $Folderjson = ConvertTo-Json -InputObject $Folderdata -Depth 100 #-Compress
+                $pathfolderdata = "$Path\Folders\$($Folder.uid)-$($Folder.Title).json"
+                $Folderjson | Out-File -FilePath $pathfolderdata -Force
+                
+                $Folderperm = Get-GrafanaFolderPermissions -uid $FolderUid
+                if ($Folderperm.Statuscode -eq "200"){
+                    
+                    $Folderpermjson = ConvertTo-Json -InputObject $Folderperm.Data -Depth 100 #-Compress
+                    $pathfolderperm = "$Path\Folders\Permissions\$($Folder.uid)-Permissions.json"
+                    $Folderpermjson | Out-File -FilePath $pathfolderperm -Force
+                }
+            }            
         }
 
         ##############################
@@ -92,17 +105,23 @@ function Invoke-PullGrafana{
         
         $DataSources = Get-GrafanaDatasource
         
-        foreach($Datasource in $DataSources){
-            
-            #$DatasourceName = $($Datasource.name)
-            #$DatasourceName = $DatasourceName -replace '/', ''
-            $Datasourcedata = Get-GrafanaDatasource -uid $Datasource.uid
-
-            $DatasourceContentJson = ConvertTo-Json -InputObject $Datasourcedata -Depth 100 #-Compress
-            $pathdsdata = "$Path\DataSources\$($Datasource.uid)-$($Datasource.name).json"
-            $DatasourceContentJson | Out-File -FilePath $pathdsdata -Force
-            
-            
+        if ($DataSources.Statuscode -ne "200" ) {
+            Write-Verbose "No Datasources found"
+        }
+        else {
+        
+            foreach($Datasource in $DataSources.Data){
+                
+                #$DatasourceName = $($Datasource.name)
+                #$DatasourceName = $DatasourceName -replace '/', ''
+                $Datasourcedata = Get-GrafanaDatasource -uid $Datasource.uid
+                if ($Datasourcedata.Statuscode -eq "200" ) {
+                                
+                    $DatasourceContentJson = ConvertTo-Json -InputObject $Datasourcedata.Data -Depth 100 #-Compress
+                    $pathdsdata = "$Path\DataSources\$($Datasource.uid)-$($Datasource.name).json"
+                    $DatasourceContentJson | Out-File -FilePath $pathdsdata -Force
+                }             
+            }
         }
 
         #############################
@@ -119,26 +138,43 @@ function Invoke-PullGrafana{
             New-Item -ItemType Directory -Force -Path "$path\Dashboards\Permissions"
         }
         
-        $Dashboards = Get-GrafanaDashboard
+        $ReturnDashboards = Get-GrafanaDashboard
         
-        foreach($Dashboard in $Dashboards){
-            
-            $DashboardTitle = $($Dashboard.title)
-            $DashboardTitle = $DashboardTitle -replace '/', ''
-            $dashboardcontentjson = Export-GrafanaDashboard -id $Dashboard.id -latest
-            
-            $dsj = ConvertFrom-Json -InputObject $dashboardcontentjson
-            $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value $dsj
+        if ($ReturnDashboards.StatusCode -ne "200"){
+            Write-Verbose "No Dashboards found"
+        }
+        else {
 
-            $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 #-Compress
-            $pathdbdata = "$Path\Dashboards\$($Dashboard.uid)-$DashboardTitle.json"
-            $dashboarddatajson | Out-File -FilePath $pathdbdata -Force
-            
-            $Dashperm = Get-GrafanaDashboardPermissions -uid $Dashboard.uid
-            $Dashpermjson = ConvertTo-Json -InputObject $Dashperm -Depth 100 #-Compress
-            $pathdashperm = "$Path\Dashboards\Permissions\$($Dashboard.uid)-Permissions.json"
-            $Dashpermjson | Out-File -FilePath $pathdashperm -Force
+            $Dashboards = $ReturnDashboards.Data
 
+            foreach($Dashboard in $Dashboards){
+                
+                $DashboardTitle = $($Dashboard.title)
+                $DashboardTitle = $DashboardTitle -replace '/', ''
+                $dashboardcontent = Export-GrafanaDashboard -id $Dashboard.id -latest
+                
+                if ($dashboardcontent.StatusCode -eq "200") {
+
+
+                    #$dsj = ConvertFrom-Json -InputObject $dashboardcontentjson
+                    $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value dashboardcontent #$dsj
+
+                    $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 #-Compress
+                    $pathdbdata = "$Path\Dashboards\$($Dashboard.uid)-$DashboardTitle.json"
+                    $dashboarddatajson | Out-File -FilePath $pathdbdata -Force
+                    
+                    $Dashperm = Get-GrafanaDashboardPermissions -uid $Dashboard.uid
+                    if ($Dashperm.StatusCode -eq "200") {
+
+                        $Dashpermjson = ConvertTo-Json -InputObject $Dashperm.Data -Depth 100 #-Compress
+                        $pathdashperm = "$Path\Dashboards\Permissions\$($Dashboard.uid)-Permissions.json"
+                        $Dashpermjson | Out-File -FilePath $pathdashperm -Force
+                    }
+                }
+                else {
+                    Write-Verbose "Error Getting DashboardContent for uid $Dashboard.id"
+                }
+            }
         }
 
         #################################
@@ -151,13 +187,17 @@ function Invoke-PullGrafana{
         }
         
         $Panels = Get-GrafanaPanels
-        
-        foreach($Panel in $Panels.result.elements){
-            
-            $PanelJson = ConvertTo-Json -InputObject $Panel -Depth 100 #-Compress
-            $pathpldata = "$Path\Panels\$($Panel.uid)-$($Panel.name).json"
-            $PanelJson | Out-File -FilePath $pathpldata -Force  
-            
+        if ($Panels.StatusCode -ne "200"){
+            Write-Verbose "No Panels found"
+        }
+        else {
+            foreach($Panel in $Panels.Data.result.elements){
+                
+                $PanelJson = ConvertTo-Json -InputObject $Panel -Depth 100 #-Compress
+                $pathpldata = "$Path\Panels\$($Panel.uid)-$($Panel.name).json"
+                $PanelJson | Out-File -FilePath $pathpldata -Force  
+                
+            }
         }
 
         #############################
