@@ -3,14 +3,17 @@ Grafana Powershell
 
 API : Query the grafana API
 
-OPS : Export Grafana configuration as json file
+OPS : Export Grafana configuration as json files
+      Import Grafana Configuration from json files
 
+API : Base API are Ready
 
-TODO 
-API : Complete full grafana API
+OPS : Pull Configuration done : Dashboards, panels, datascources, folders, permissions, settings
 
-OPS : Pull all configuration
+OPS : Push configuration done : Datasources, panels, folders
 
-OPS : Push configuration back to grafana
+Todo :
+
+OPS : Push configuration : permissions, settings, dashboards
 
 OPS : Create Azure Devops Pipeline for pull and push
