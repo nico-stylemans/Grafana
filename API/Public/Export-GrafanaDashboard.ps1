@@ -30,7 +30,7 @@ function Export-GrafanaDashboard{
         $header = Get-AuthHeader -Type token
         
         if ( $latest ){
-            $version = (Get-GrafanaDashboardVersion -id $id -latest).version
+            $version = (Get-GrafanaDashboardVersion -id $id -latest).Data.version
         }
 
         $resource = "/api/dashboards/id/$id/versions/$version"
