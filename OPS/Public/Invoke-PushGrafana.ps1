@@ -126,6 +126,25 @@ function Invoke-PushGrafana{
  
         }
 
+        ######################################
+        # IMPORT Grafana Folders Permissions #
+        ######################################
+
+        If(!(test-path "$path\Folders\Permissions"))
+        {
+            Return "folder\Permissions does not exists!"
+        }
+        
+        $FoldersPerms = Get-ChildItem -Path "$path\Folders\Permsissions" -File
+                
+        foreach($FolderPerm in $FoldersPerms){
+
+            $FolderPermobj = Get-Content -Path $FolderPerm.FullName | ConvertFrom-Json
+            
+            Update-GrafanaFolderPermissions -uid $FolderPermobj.uid -json $FolderPermobj
+            
+        }
+
         #########################
         # IMPORT Grafana Panels #
         #########################
@@ -153,6 +172,50 @@ function Invoke-PushGrafana{
 
         }
 
+        #############################
+        # IMPORT Grafana Dashboards #
+        #############################
+
+        If(!(test-path "$path\Dashboards"))
+        {
+            Return "Dashboard folder does not exists!"
+        }
+        
+        $Dashboards = Get-ChildItem -Path "$path\Dashboards" -File
+                
+        foreach($Dashboard in $Dashboards){
+
+            $Dashboardobj = Get-Content -Path $Folder.FullName | ConvertFrom-Json
+            
+            $existingdashboard = Get-GrafanaDashboard -uid $Dashboardobj.uid #| ConvertFrom-Json
+
+            if ($existingdashboard.StatusCode -eq "404") {
+                New-GrafanaDashboard -dsjson $Dashboardobj
+            }
+            else {
+                New-GrafanaDashboard -dsjson $Dashboardobj
+            }
+ 
+        }
+
+        ########################################
+        # IMPORT Grafana Dashboard Permissions #
+        ########################################
+
+        If(!(test-path "$path\Dashboards\Permissions"))
+        {
+            Return "Dashboards\Permissions does not exists!"
+        }
+        
+        $DashboardPerms = Get-ChildItem -Path "$path\Dashboards\Permsissions" -File
+                
+        foreach($DashboardPerm in $DashboardPerms){
+
+            $DashboardPermobj = Get-Content -Path $DashboardPerm.FullName | ConvertFrom-Json
+            
+            Update-GrafanaDashboardPermissions -uid $DashboardPermobj.uid -json $DashboardPermobj
+            
+        }
         
     }
 }

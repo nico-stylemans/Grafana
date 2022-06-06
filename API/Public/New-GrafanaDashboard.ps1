@@ -13,10 +13,13 @@ function New-GrafanaDashboard{
     #>
     [CmdletBinding()]
     param(
+        #[Parameter(Mandatory=$true)]
+        #[String]$Name,        
+        #[Parameter(Mandatory=$false)]
+        #[String]$Tags,
         [Parameter(Mandatory=$true)]
-        [String]$Name,        
-        [Parameter(Mandatory=$false)]
-        [String]$Tags   
+        $dsjson            
+    )  
     )
     
     process {
@@ -25,9 +28,9 @@ function New-GrafanaDashboard{
                 
         $url += "/api/dashboards/db"
         write-verbose $url
-        $TagList = $Tags.Split(",")
+        #$TagList = $Tags.Split(",")
         
-        $dashboard = @{ 
+        <# $dashboard = @{ 
             id = $null
             uid = $null
             title = $name
@@ -42,9 +45,11 @@ function New-GrafanaDashboard{
             inputs = @()
             folderId = 0
             overwrite = $false
-        }
+        } #>
     
-        $jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
+        #$jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
+        
+        $jsonBody = ConvertTo-Json -InputObject $dsjson -Depth 100 -Compress  
 
         # Force using TLS v1.2
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
