@@ -19,11 +19,9 @@ function Get-GrafanaDashboardVersion{
         [switch]$latest
     )
     process{
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-
+        
         $resource = "/api/dashboards/id/$id/versions"
-        $url += "$resource"
+        $url = "$resource"
         
         if ( $latest -eq $true ){
             $param = "?limit=1"
@@ -31,15 +29,10 @@ function Get-GrafanaDashboardVersion{
         }
         write-verbose $url
         
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardVersions = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8' -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $dashboardVersions
-        }
-        
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "GET" -Auth "Token"
+
         return $ReturnValue
+        
+        
     }
 }

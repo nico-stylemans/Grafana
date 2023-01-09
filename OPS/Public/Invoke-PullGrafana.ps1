@@ -157,7 +157,7 @@ function Invoke-PullGrafana{
 
 
                     #$dsj = ConvertFrom-Json -InputObject $dashboardcontentjson
-                    $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value dashboardcontent #$dsj
+                    $Dashboard | Add-Member -MemberType NoteProperty -Name 'data' -Value $dashboardcontent.data #$dsj
 
                     $dashboarddatajson = ConvertTo-Json -InputObject $Dashboard -Depth 100 #-Compress
                     $pathdbdata = "$Path\Dashboards\$($Dashboard.uid)-$DashboardTitle.json"
@@ -197,6 +197,64 @@ function Invoke-PullGrafana{
                 $pathpldata = "$Path\Panels\$($Panel.uid)-$($Panel.name).json"
                 $PanelJson | Out-File -FilePath $pathpldata -Force  
                 
+            }
+        }
+
+        ########################
+        # Export Grafana Teams #
+        ########################
+
+        If(!(test-path "$path\Teams"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Teams"
+        }
+
+        If(!(test-path "$path\Teams\Members"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Teams\Members"
+        }
+
+        If(!(test-path "$path\Teams\Preferences"))
+        {
+            New-Item -ItemType Directory -Force -Path "$path\Teams\Preferences"
+        }
+        
+        $ReturnTeams = Get-GrafanaTeam
+        
+        if ($ReturnTeams.StatusCode -ne "200"){
+            Write-Verbose "No Teams found"
+        }
+        else {
+
+            $Teams = $ReturnTeams.Data
+
+            foreach($Team in $Teams.teams){
+                
+                $TeamName = $($Team.name)
+                
+                $Teamdatajson = ConvertTo-Json -InputObject $Team -Depth 100 #-Compress
+                $pathteamdata = "$Path\Teams\$($Team.id)-$TeamName.json"
+                $Teamdatajson | Out-File -FilePath $pathteamdata -Force
+                    
+                # Get Team Members
+                
+                $TeamMembers = Get-GrafanaTeamMember -id $Team.id
+                if ($TeamMembers.StatusCode -eq "200") {
+
+                        $tmjson = ConvertTo-Json -InputObject $TeamMembers.Data -Depth 100 #-Compress
+                        $pathtm = "$Path\Teams\Members\$($Team.id)-Members.json"
+                        $tmjson | Out-File -FilePath $pathtm -Force
+                }
+
+                # Get Team Preference
+                
+                $returnpref = Get-GrafanaTeamPreference -id  $Team.id
+                if ($returnpref.StatusCode -eq "200") {
+
+                    $prefjson = ConvertTo-Json -InputObject $returnpref.Data -Depth 100 #-Compress
+                    $pathpref = "$Path\Teams\Preferences\$($Team.id)-Preferences.json"
+                    $prefjson | Out-File -FilePath $pathpref -Force
+                }
             }
         }
 

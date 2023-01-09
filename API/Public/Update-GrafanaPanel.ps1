@@ -35,19 +35,10 @@ function Update-GrafanaPanel{
     )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-                
-        $url += "/api/library-elements"
-        write-verbose $url
-
-        #if ([string]::IsNullOrWhiteSpace($uid)){
-        #    $uid = $null
-        #}
-        #if ([string]::IsNullOrWhiteSpace($folderid)){
-        #    $folderid = 0
-        #}
         
+        $url = "/api/library-elements"
+        write-verbose $url
+              
         #$body = @{
         #    uid = $uid
         #    folderId = $folderid
@@ -57,18 +48,11 @@ function Update-GrafanaPanel{
         #    version = $version
         #}
     
-        #$jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
         $jsonBody = ConvertTo-Json -InputObject $paneljson -Depth 100 -Compress  
+        
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "PATCH" -Auth "Token" -Body $jsonBody
 
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $panelJson = Invoke-RestMethod -Uri $url -Headers $header -Method PATCH -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
+        return $ReturnValue
         
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $panelJson
-        }
-        
-        return $ReturnValue 
     }
 }

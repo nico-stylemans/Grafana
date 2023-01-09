@@ -32,10 +32,8 @@ function New-GrafanaPanel{
     )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-                
-        $url += "/api/library-elements"
+                        
+        $url = "/api/library-elements"
         write-verbose $url
 
         #if ([string]::IsNullOrWhiteSpace($uid)){
@@ -56,16 +54,10 @@ function New-GrafanaPanel{
         #$jsonBody = ConvertTo-Json -InputObject $body -Depth 100 -Compress  
 
         $jsonBody = ConvertTo-Json -InputObject $paneljson -Depth 100 -Compress  
-
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $panelJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
         
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $paneljson
-        }
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "POST" -Auth "Token" -Body $jsonBody
 
-        return $ReturnValue       
+        return $ReturnValue
+        
     }
 }
