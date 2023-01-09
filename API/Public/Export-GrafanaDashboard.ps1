@@ -26,25 +26,19 @@ function Export-GrafanaDashboard{
     )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
         
         if ( $latest ){
             $version = (Get-GrafanaDashboardVersion -id $id -latest).Data.version
         }
 
         $resource = "/api/dashboards/id/$id/versions/$version"
-        $url += "$resource"
+        $url = "$resource"
         write-verbose $url
         
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8' -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        #$json = ConvertTo-Json $dashboardJson.data -depth 100 -compress
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $dashboardJson.data
-        }
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "GET" -Auth "Token"
+
         return $ReturnValue
+
+
     }
 }

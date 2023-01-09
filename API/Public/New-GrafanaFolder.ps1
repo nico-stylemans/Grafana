@@ -20,10 +20,8 @@ function New-GrafanaFolder{
     )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-                
-        $url += "/api/folders"
+                        
+        $url = "/api/folders"
         write-verbose $url
         
         if ([string]::IsNullOrWhiteSpace($Uid)){
@@ -40,15 +38,8 @@ function New-GrafanaFolder{
            
         $jsonBody = ConvertTo-Json -InputObject $folder -Depth 100 -Compress  
 
-        
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $FolderJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $FolderJson
-        }
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "POST" -Auth "Token" -Body $jsonBody
+
         return $ReturnValue
          
     }

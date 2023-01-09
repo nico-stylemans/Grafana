@@ -15,39 +15,26 @@ function Get-GrafanaDashboard{
     param(
         [Parameter(Mandatory=$false)]
         [string]$uid
-        #[Parameter(Mandatory=$false)]
-        #[string]$id
     )
     
     process{
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-
+        
         if ([string]::IsNullOrWhiteSpace($uid)){
 
-            #if ([string]::IsNullOrWhiteSpace($id)){
-                $url += "/api/search?type=dash-db&query=&"  
-            #}
-            #else {
-            #    $url += "/api/dashboards/id/$id"  
-            #    Write-Verbose $url  
-            #}
+            $url = "/api/search?type=dash-db&query=&"  
+           
         } 
         else {
-            $url += "/api/dashboards/uid/$uid"
+            $url = "/api/dashboards/uid/$uid"
             
         }
         write-verbose $url
         
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardList = Invoke-RestMethod -Uri $url -Headers $header -Method GET -ContentType 'application/json;charset=utf-8' -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $dashboardList
-        }
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "GET" -Auth "Token"
+
         return $ReturnValue
+
+        
         
     }
 }

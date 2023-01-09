@@ -20,13 +20,10 @@ function New-GrafanaDashboard{
         [Parameter(Mandatory=$true)]
         $dsjson            
     )  
-    )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-                
-        $url += "/api/dashboards/db"
+        
+        $url = "/api/dashboards/db"
         write-verbose $url
         #$TagList = $Tags.Split(",")
         
@@ -51,13 +48,9 @@ function New-GrafanaDashboard{
         
         $jsonBody = ConvertTo-Json -InputObject $dsjson -Depth 100 -Compress  
 
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $dashboardJson = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $dashboardJson
-        }
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "POST" -Auth "Token" -Body $jsonBody
+
         return $ReturnValue
+
     }
 }

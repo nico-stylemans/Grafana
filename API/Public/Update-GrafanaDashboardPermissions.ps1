@@ -20,24 +20,16 @@ function Update-GrafanaDashboardPermissions{
     )
     
     process{
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-         
-        $url += "/api/dashboards/uid/$uid/permissions"
+                 
+        $url = "/api/dashboards/uid/$uid/permissions"
         
         $jsonBody = ConvertTo-Json -InputObject $json -Depth 100 -Compress  
 
         write-verbose $url
         
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $PermissionList = Invoke-RestMethod -Uri $url -Headers $header -Method POST -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $PermissionList
-        }
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "POST" -Auth "Token" -Body $jsonBody
 
         return $ReturnValue
+        
     }
 }

@@ -19,24 +19,15 @@ function Update-GrafanaDatasource{
     )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-                
-        $url += "/api/datasources/$id"
+                        
+        $url = "/api/datasources/$id"
         write-verbose $url
                    
         $jsonBody = ConvertTo-Json -InputObject $dsjson -Depth 100 -Compress  
 
-        
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $DsJson = Invoke-RestMethod -Uri $url -Headers $header -Method PUT -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $DsJson
-        }
-        return $ReturnValue  
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "PUT" -Auth "Token" -Body $jsonBody
+
+        return $ReturnValue
 
     }
 }

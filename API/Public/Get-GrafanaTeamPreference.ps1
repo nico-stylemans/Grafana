@@ -1,30 +1,29 @@
-function Get-GrafanaDashboardPermissions{
+function Get-GrafanaTeamPreference{
     <#
     .SYNOPSIS
-        Function for list all of Folders / return Folder by ui
+        Get Team Preferences
     .DESCRIPTION
 
     .EXAMPLE
         
-    .PARAMETER uid
-        Dashboard uid
+    .PARAMETER id
+        Team id
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [string]$uid
+        [string]$id
     )
     
     process{
-                 
-        $url = "/api/dashboards/uid/$uid/permissions"
         
+        $url = "/api/teams/$id/preferences"  
+               
         write-verbose $url
-        
+                
         $ReturnValue = Invoke-GrafanaApi -url $url -method "GET" -Auth "Token"
 
         return $ReturnValue
-
-                
+        
     }
 }

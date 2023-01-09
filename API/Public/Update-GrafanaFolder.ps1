@@ -20,10 +20,8 @@ function Update-GrafanaFolder{
     )
     
     process {
-        $url = Get-GrafanaUrl
-        $header = Get-AuthHeader -Type token
-                
-        $url += "/api/folders/$Uid"
+                        
+        $url = "/api/folders/$Uid"
         write-verbose $url
         
         
@@ -35,16 +33,9 @@ function Update-GrafanaFolder{
            
         $jsonBody = ConvertTo-Json -InputObject $folder -Depth 100 -Compress  
 
-        
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $FolderJson = Invoke-RestMethod -Uri $url -Headers $header -Method PUT -ContentType 'application/json;charset=utf-8' -Body $jsonBody -ErrorVariable myerror -StatusCodeVariable mystatus -ResponseHeadersVariable myheaders -SkipHttpErrorCheck
-        
-        $ReturnValue = New-Object PSObject -Property @{
-            StatusCode = $mystatus
-            Data = $FolderJson
-        }
-        
+        $ReturnValue = Invoke-GrafanaApi -url $url -method "PUT" -Auth "Token" -Body $jsonBody
+
         return $ReturnValue
+
     }
 }

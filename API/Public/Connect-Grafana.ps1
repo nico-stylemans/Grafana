@@ -32,27 +32,20 @@ function Connect-Grafana{
         [string]$url
     )
     Process {
-        #$Global:grafanaURL = Set-Grafana-Url -url $url
+        
         Set-GrafanaUrl $url
         Set-GrafanaAuthHeaders -Login $Login -Password $Password -Token $Token
-        #$Global:headers = Set-Grafana-Auth-Header -authLogin $Login -authPassword $Password `
-        #                                            -authToken $Token   
+        
+        $loginurl = "/api/search"
+        
+        $ReturnValue = Invoke-GrafanaApi -url $loginurl -method "GET" -Auth "Basic"
 
-        $url += "/api/search"
-        #$resource = "/api/search"
-        #$param = "?type=dash-db&query="
-        #$url += "$resource/$param"
-
-        # Test connection to validate credential
-        # Force using TLS v1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $header = Get-AuthHeader -Type Basic
-        try{
-            Invoke-RestMethod -Uri $url -Method Get -ContentType 'application/json;charset=utf-8' -Headers $header | Out-null
+        if ($ReturnValue.StatusCode -eq "200"){
             Write-Verbose "Connection succesfull"
-        }catch{
-            Write-Error "Unable to connect : $_"
+        } else {
+            Write-Error "Unable to connect : $url"
             Disconnect-Grafana
         }
+     
     }
 }
